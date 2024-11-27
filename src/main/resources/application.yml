@@ -1,0 +1,54 @@
+app:
+  db:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    schema: tech_jusan_weather
+    maximum-pool-size: 10
+  clients:
+    weather:
+      url: https://api.weatherapi.com/v1
+      key: 8db83ebefb074a72870165251242711
+server:
+  port: 8082
+  servlet:
+    context-path: /tech
+spring:
+  main:
+    banner-mode: off
+  application:
+    name: weather
+  jpa:
+    properties:
+      hibernate:
+        default_schema: ${app.db.schema}
+  datasource:
+    url: ${app.db.url}
+    username: ${app.db.username}
+    password: ${app.db.password}
+    hikari:
+      maximum-pool-size: ${app.db.maximum-pool-size}
+      minimum-idle: 10
+  flyway:
+    schemas: ${app.db.schema}
+    #init-sqls: CREATE SCHEMA IF NOT EXISTS ${app.db.schema}
+springdoc:
+  swagger-ui:
+    path: "/v1/swagger-ui.html"
+  api-docs:
+    path: /v1/api-docs
+clients:
+  weather:
+    baseUrl: ${app.clients.weather.url}
+    key: ${app.clients.weather.key}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info,metrics,loggers
+logging:
+  level:
+    root: info
+    tech.jusan.weather: debug
+
+
