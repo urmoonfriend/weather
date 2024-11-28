@@ -1,5 +1,6 @@
 package tech.jusan.weather.services.impl;
 
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
@@ -8,7 +9,9 @@ import org.springframework.stereotype.Service;
 import tech.jusan.weather.clients.WeatherApiClient;
 import tech.jusan.weather.clients.models.responses.CurrentResponse;
 import tech.jusan.weather.clients.models.responses.forecast.ForecastResponse;
+import tech.jusan.weather.exceptions.AuthException;
 import tech.jusan.weather.exceptions.CityNotFoundException;
+import tech.jusan.weather.exceptions.WeatherApiUnavailableException;
 import tech.jusan.weather.models.dtos.ResultMessage;
 import tech.jusan.weather.services.WeatherService;
 import tech.jusan.weather.services.db.CityDatabase;
@@ -41,14 +44,20 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     private ResponseEntity<ResultMessage<CurrentResponse>> getWeatherByName(String name) {
-        ResponseEntity<ResultMessage<CurrentResponse>> response = ResultMessage.unknownError();
+        ResponseEntity<ResultMessage<CurrentResponse>> response = ResultMessage.serverError();
         try {
             ResponseEntity<CurrentResponse> result = weatherApiClient.getCurrentWeather(name);
-            if (HttpStatusCode.valueOf(200).equals(result.getStatusCode())) {
+            if (result != null && HttpStatusCode.valueOf(200).equals(result.getStatusCode())) {
                 response = ResultMessage.success(result.getBody());
             }
-        } catch (Exception e) {
-            log.error("WeatherServiceImpl.getWeatherByName error: {}", e.getMessage(), e);
+        } catch (FeignException.ServiceUnavailable e) {
+            response = ResultMessage.serviceUnavailable(
+                    new WeatherApiUnavailableException().getMessage()
+            );
+        } catch (FeignException.Unauthorized | FeignException.Forbidden e) {
+            response = ResultMessage.authError(
+                    new AuthException().getMessage()
+            );
         }
         return response;
     }
@@ -57,11 +66,17 @@ public class WeatherServiceImpl implements WeatherService {
         ResponseEntity<ResultMessage<ForecastResponse>> response = ResultMessage.unknownError();
         try {
             ResponseEntity<ForecastResponse> result = weatherApiClient.getForecast(name, days);
-            if (HttpStatusCode.valueOf(200).equals(result.getStatusCode())) {
+            if (result != null && HttpStatusCode.valueOf(200).equals(result.getStatusCode())) {
                 response = ResultMessage.success(result.getBody());
             }
-        } catch (Exception e) {
-            log.error("WeatherServiceImpl.getForecastById error: {}", e.getMessage(), e);
+        } catch (FeignException.ServiceUnavailable e) {
+            response = ResultMessage.serviceUnavailable(
+                    new WeatherApiUnavailableException().getMessage()
+            );
+        } catch (FeignException.Unauthorized | FeignException.Forbidden e) {
+            response = ResultMessage.authError(
+                    new AuthException().getMessage()
+            );
         }
         return response;
     }

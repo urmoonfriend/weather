@@ -10,14 +10,13 @@ import java.math.BigDecimal;
 public interface CityRepository extends JpaRepository<City, Long> {
 
     @Modifying
-    @Query(value = "update tech_jusan_weather.city c " +
+    @Query(value = "update City c " +
             "set c.name = :name, " +
             "c.latitude = :latitude, " +
             "c.longitude = :longitude, " +
             "c.timezone = :timezone, " +
-            "c.updated_at = NOW() " +
-            "where c.id = :id" +
-            "RETURNING *", nativeQuery = true)
-    City update(Long id, String name, BigDecimal latitude, BigDecimal longitude, String timezone);
+            "c.updatedAt = CURRENT_TIMESTAMP " +
+            "where c.id = :id ")
+    void update(Long id, String name, BigDecimal latitude, BigDecimal longitude, String timezone);
 
 }

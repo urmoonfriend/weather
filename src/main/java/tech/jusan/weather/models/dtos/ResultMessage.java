@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import tech.jusan.weather.enums.ResultCode;
 
+import java.util.Map;
+
 @Data
 @Accessors(chain = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -35,6 +37,26 @@ public class ResultMessage<T> {
                 );
     }
 
+    public static <T> ResponseEntity<ResultMessage<T>> authError(String error) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(
+                        new ResultMessage<T>()
+                                .setSuccess(false)
+                                .setCode(ResultCode.AUTH_ERROR)
+                                .setError(error)
+                );
+    }
+
+    public static <T> ResponseEntity<ResultMessage<T>> serviceUnavailable(String error) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(
+                        new ResultMessage<T>()
+                                .setSuccess(false)
+                                .setCode(ResultCode.SERVICE_UNAVAILABLE)
+                                .setError(error)
+                );
+    }
+
     public static <T> ResponseEntity<ResultMessage<T>> unknownError() {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(
@@ -50,6 +72,16 @@ public class ResultMessage<T> {
                         new ResultMessage<T>()
                                 .setSuccess(false)
                                 .setCode(ResultCode.SERVER_ERROR)
+                );
+    }
+
+    public static <T> ResponseEntity<ResultMessage<T>> error(Map<String, String> errors) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(
+                        new ResultMessage<T>()
+                                .setSuccess(false)
+                                .setCode(ResultCode.VALIDATION_ERROR)
+                                .setError(String.join(", ", errors.values()))
                 );
     }
 }

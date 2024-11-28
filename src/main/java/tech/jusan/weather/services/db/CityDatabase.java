@@ -1,6 +1,5 @@
 package tech.jusan.weather.services.db;
 
-import aj.org.objectweb.asm.commons.Remapper;
 import org.springframework.transaction.annotation.Transactional;
 import tech.jusan.weather.models.dtos.CityDto;
 import tech.jusan.weather.models.entities.City;

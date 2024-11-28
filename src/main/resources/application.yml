@@ -29,9 +29,17 @@ spring:
     hikari:
       maximum-pool-size: ${app.db.maximum-pool-size}
       minimum-idle: 10
+    driver-class-name: org.postgresql.Driver
   flyway:
     schemas: ${app.db.schema}
-    #init-sqls: CREATE SCHEMA IF NOT EXISTS ${app.db.schema}
+    init-sqls: CREATE SCHEMA IF NOT EXISTS ${app.db.schema}
+  cache:
+    type: redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
 springdoc:
   swagger-ui:
     path: "/v1/swagger-ui.html"
@@ -48,7 +56,7 @@ management:
         include: prometheus,health,info,metrics,loggers
 logging:
   level:
-    root: info
-    tech.jusan.weather: debug
+    root: WARN
+    tech.jusan.weather: INFO
 
 
