@@ -1,5 +1,6 @@
 package tech.jusan.weather.configs;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +16,15 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @EnableCaching
 public class RedisCacheConfig {
 
+    @Value("${spring.data.redis.host}")
+    private String host;
+
+    @Value("${spring.data.redis.port}")
+    private Integer port;
+
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
-        RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration("localhost", 6379);
+        RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration(host, port);
         JedisClientConfiguration clientConfig = JedisClientConfiguration.builder().build();
         return new JedisConnectionFactory(redisConfig, clientConfig);
     }
