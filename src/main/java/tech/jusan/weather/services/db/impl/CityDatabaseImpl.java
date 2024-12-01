@@ -1,5 +1,6 @@
 package tech.jusan.weather.services.db.impl;
 
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -25,6 +26,7 @@ public class CityDatabaseImpl implements CityDatabase {
     private final ModelMapper modelMapper;
 
     @Override
+    @Timed(value = "city.create.time", description = "Time taken to create city")
     public Optional<City> create(CityDto cityDto) {
         City city = cityRepository.save(
                 modelMapper.map(cityDto, City.class)
@@ -34,6 +36,7 @@ public class CityDatabaseImpl implements CityDatabase {
 
     @Override
     @Transactional
+    @Timed(value = "city.update.time", description = "Time taken to update city")
     public Optional<City> update(CityDto cityDto) {
         return cityRepository.findById(cityDto.getId())
                 .flatMap(city -> {

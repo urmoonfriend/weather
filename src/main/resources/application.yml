@@ -50,6 +50,9 @@ clients:
     baseUrl: ${app.clients.weather.url}
     key: ${app.clients.weather.key}
 management:
+  endpoint:
+    health:
+      show-details: always
   endpoints:
     web:
       exposure:

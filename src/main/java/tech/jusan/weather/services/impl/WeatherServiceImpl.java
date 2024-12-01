@@ -1,6 +1,7 @@
 package tech.jusan.weather.services.impl;
 
 import feign.FeignException;
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
@@ -24,6 +25,7 @@ public class WeatherServiceImpl implements WeatherService {
     private final CityDatabase cityDatabase;
 
     @Override
+    @Timed(value = "weather.current.time", description = "Time taken to get current weather of city")
     public ResponseEntity<ResultMessage<CurrentResponse>> getWeatherById(Long id) {
         return cityDatabase.findById(id)
                 .map(city -> getWeatherByName(city.getName()))
@@ -34,6 +36,7 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     @Override
+    @Timed(value = "weather.forecast.time", description = "Time taken to get forecast weather of city")
     public ResponseEntity<ResultMessage<ForecastResponse>> getForecastById(Long id, Integer days) {
         return cityDatabase.findById(id)
                 .map(city -> getForecastByNameAndDays(city.getName(), days))
