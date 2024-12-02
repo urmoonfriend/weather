@@ -186,6 +186,9 @@
 	</dependencyManagement>
 
 	<build>
+		<finalName>
+			weather
+		</finalName>
 		<plugins>
 			<plugin>
 				<!--lombok-->

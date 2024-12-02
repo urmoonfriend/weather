@@ -12,26 +12,37 @@ services:
       - TZ=Asia/Almaty
       - SPRING_MAIN_BANNER-MODE=off
       - SERVER_SHUTDOWN=graceful
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://weather_db_container:5432/tech_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
     depends_on:
-      - postgres
-      - redis
-      - prometheus
+      weather_db_container:
+          condition: service_healthy
+      redis:
+          condition: service_healthy
+      prometheus:
+          condition: service_healthy
     networks:
       - app-network
 
-  postgres:
+  weather_db_container:
     image: postgres:15-alpine
-    container_name: postgres
+    container_name: weather_db_container
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=tech_db
     ports:
-      - "5432:5432"
+      - "5437:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -41,19 +52,30 @@ services:
       - "6379:6379"
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.55.1
     container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:9090/-/healthy || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
   grafana:
-    image: grafana/grafana-oss:latest
+    image: grafana/grafana:11.3.0
     container_name: grafana
     ports:
       - "3000:3000"
@@ -61,12 +83,17 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_healthy
     networks:
       - app-network
     volumes:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:3000 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 networks:
   app-network:
 
